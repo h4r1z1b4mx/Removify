@@ -10,13 +10,14 @@ import {
   MobileNavToggle,
   MobileNavMenu,
 } from "@/components/ui/resizable-navbar";
+import Link from "next/link";
 import { useState } from "react";
 
 export function NavbarDemo() {
   const navItems = [
     {
       name: "Remove Background",
-      link: "#features",
+      link: "/upload",
     },
     {
       name: "Price",
@@ -31,11 +32,13 @@ export function NavbarDemo() {
       <Navbar>
         {/* Desktop Navigation */}
         <NavBody>
+      
           <NavbarLogo />
+        
           <NavItems items={navItems} />
           <div className="flex items-center gap-4">
-            <NavbarButton variant="secondary">Login</NavbarButton>
-            <NavbarButton variant="primary">Sign Up</NavbarButton>
+            <Link href={'/login'}><NavbarButton variant="secondary">Login</NavbarButton> </Link>
+            <Link href={'/signup'}><NavbarButton variant="primary">Sign Up</NavbarButton></Link>
           </div>
         </NavBody>
 
