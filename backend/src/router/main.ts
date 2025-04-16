@@ -3,7 +3,7 @@ import { authMiddleware } from "../middleware";
 import multer from "multer";
 import { prisma } from "../db";
 import fs from "fs";
-import { listFiles, uploadFile } from "../utils/aws";
+import { getDownloadUrl, listFiles, uploadFile } from "../utils/aws";
 import {v4 as uuidv4} from "uuid";
 import path from "path";
 import { removeBackgroundFromImage } from "../utils/rg";
@@ -104,16 +104,16 @@ router.get('/status/:image_id',authMiddleware , async(req, res) => {
 //@ts-ignore
 router.get('/download/:image_id',authMiddleware, async(req, res) => {
     //@ts-ignore
-    const {image_id} = req.params ;
-    const image = await prisma.images.findUnique({
-        where:{
-            id:image_id
-        }
-    })
-    if(!image){
-        res.status(400).json({message:"Image not found"})
+    const userId = req.id;
+    const { image_id } = req.params;
+
+    try {
+        const signedUrl = await getDownloadUrl(userId, image_id);
+        return res.status(200).json({ downloadUrl: signedUrl });
+    } catch (error) {
+        console.error('Download error:', error);
+        return res.status(500).json({ message: 'Failed to generate download link' });
     }
-    return res.status(200).json(image)
 });
 
 //@ts-ignore
@@ -140,19 +140,5 @@ router.get('/images', authMiddleware, async (req, res) => {
     }
 });
 
-//@ts-ignore
-router.get('/images/:image_id',authMiddleware, async (req, res) => {
-    //@ts-ignore
-    const {image_id} = req.params;
-    const image = await prisma.images.findUnique({  
-        where:{
-            id:image_id
-        }
-    })
-    if(!image){
-        res.status(400).json({message:"Image not found"})
-    }
-    return res.status(200).json(image)
-}); 
 
 export const mainRouter = router;

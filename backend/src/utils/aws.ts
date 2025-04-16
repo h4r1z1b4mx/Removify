@@ -38,3 +38,15 @@ export const listFiles = async (prefix: string): Promise<string[]> => {
         });
     }) || [];
 };
+
+export const getDownloadUrl = async (userId: string, imageId: string): Promise<string> => {
+    const key = `bg/${userId}/${imageId}`;
+
+    const params = {
+        Bucket: 'removify',
+        Key: key,
+        Expires: 60 * 5,
+    };
+
+    return s3.getSignedUrl('getObject', params);
+};
