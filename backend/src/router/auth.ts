@@ -4,6 +4,7 @@ import {signInSchema, signUpSchema } from "../types";
 import jwt from "jsonwebtoken";
 import { JWT_PASSWORD } from "../config";
 import { prisma } from "../db";
+import { authMiddleware } from "../middleware";
 
 const router = Router();
 router.post('/register', async (req:any,res:any)=>{
@@ -79,8 +80,8 @@ router.post('/login', async(req:any,res:any)=>{
 
 });
 
-
-router.get('/', async (req, res) => {
+//@ts-ignore
+router.get('/', authMiddleware, async (req, res) => {
     //@ts-ignore
     const id = req.id;
     const user = await prisma.user.findFirst({

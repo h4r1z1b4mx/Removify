@@ -18,6 +18,7 @@ const types_1 = require("../types");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = require("../config");
 const db_1 = require("../db");
+const middleware_1 = require("../middleware");
 const router = (0, express_1.Router)();
 router.post('/register', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const body = req.body;
@@ -77,7 +78,8 @@ router.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* 
         token
     });
 }));
-router.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+//@ts-ignore
+router.get('/', middleware_1.authMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     //@ts-ignore
     const id = req.id;
     const user = yield db_1.prisma.user.findFirst({
