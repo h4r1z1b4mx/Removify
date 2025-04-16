@@ -44,15 +44,17 @@ router.post('/upload', middleware_1.authMiddleware, upload.single("image"), (req
         fs_1.default.mkdirSync(bgDir, { recursive: true });
         // Write original file to disk temporarily
         const originalLocalPath = path_1.default.join(originalDir, newFileName);
+        console.log('Original Local Path', originalLocalPath);
         fs_1.default.writeFileSync(originalLocalPath, req.file.buffer);
         // Process image and save to bg path
         const processedLocalPath = path_1.default.join(bgDir, newFileName);
+        console.log('Processed Local Path', processedLocalPath);
         yield (0, rg_1.removeBackgroundFromImage)(originalLocalPath, processedLocalPath);
         // Read processed file as buffer
         const processedBuffer = fs_1.default.readFileSync(processedLocalPath);
         // Upload to S3
-        const originalS3Url = yield (0, aws_1.uploadFile)(`original/${newFileName}`, req.file.buffer);
-        const bgS3Url = yield (0, aws_1.uploadFile)(`bg/${newFileName}`, processedBuffer);
+        const originalS3Url = yield (0, aws_1.uploadFile)(`original/${userId}/${newFileName}`, req.file.buffer);
+        const bgS3Url = yield (0, aws_1.uploadFile)(`bg/${userId}/${newFileName}`, processedBuffer);
         // Save to DB
         let userItem = yield db_1.prisma.userItem.findFirst({
             where: {
@@ -114,13 +116,58 @@ router.get('/download/:image_id', middleware_1.authMiddleware, (req, res) => __a
 }));
 //@ts-ignore
 router.get('/images', middleware_1.authMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        //@ts-ignore
+        const userId = req.id;
+        // Get images from S3 bucket's bg folder for this user
+        const s3Images = yield (0, aws_1.listFiles)(`bg/${userId}/`);
+        // Get database records
+        const userItem = yield db_1.prisma.userItem.findFirst({
+            where: {
+                userid: userId
+            }
+        });
+        if (!userItem) {
+            return res.status(200).json({
+                s3_images: s3Images,
+                db_images: []
+            });
+        }
+        const dbImages = yield db_1.prisma.images.findMany({
+            where: {
+                userid: userItem.id
+            },
+            orderBy: {
+                createdid: 'desc'
+            }
+        });
+        // Combine both sources of data
+        const response = {
+            s3_images: s3Images,
+            db_images: dbImages
+        };
+        res.status(200).json(response);
+    }
+    catch (error) {
+        console.error("Error fetching images:", error);
+        res.status(500).json({
+            message: "Failed to fetch images",
+            error: error instanceof Error ? error.message : String(error)
+        });
+    }
+}));
+//@ts-ignore
+router.get('/images/:image_id', middleware_1.authMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     //@ts-ignore
-    const id = req.id;
-    const images = yield db_1.prisma.images.findMany({
+    const { image_id } = req.params;
+    const image = yield db_1.prisma.images.findUnique({
         where: {
-            userid: id
+            id: image_id
         }
     });
-    res.status(200).json(images);
+    if (!image) {
+        res.status(400).json({ message: "Image not found" });
+    }
+    return res.status(200).json(image);
 }));
 exports.mainRouter = router;

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadFile = void 0;
+exports.listFiles = exports.uploadFile = void 0;
 const aws_sdk_1 = require("aws-sdk");
 const s3 = new aws_sdk_1.S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -32,3 +32,19 @@ const uploadFile = (fileName, fileBuffer) => __awaiter(void 0, void 0, void 0, f
     return response.Location; // URL to access the uploaded file
 });
 exports.uploadFile = uploadFile;
+const listFiles = (prefix) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const params = {
+        Bucket: 'removify',
+        Prefix: prefix
+    };
+    const response = yield s3.listObjectsV2(params).promise();
+    return ((_a = response.Contents) === null || _a === void 0 ? void 0 : _a.map(object => {
+        return s3.getSignedUrl('getObject', {
+            Bucket: 'removify',
+            Key: object.Key,
+            Expires: 3600 // URL expires in 1 hour
+        });
+    })) || [];
+});
+exports.listFiles = listFiles;

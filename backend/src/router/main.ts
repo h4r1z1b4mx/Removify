@@ -3,7 +3,7 @@ import { authMiddleware } from "../middleware";
 import multer from "multer";
 import { prisma } from "../db";
 import fs from "fs";
-import { uploadFile } from "../utils/aws";
+import { listFiles, uploadFile } from "../utils/aws";
 import {v4 as uuidv4} from "uuid";
 import path from "path";
 import { removeBackgroundFromImage } from "../utils/rg";
@@ -20,7 +20,7 @@ router.post('/upload', authMiddleware, upload.single("image"), async (req, res) 
         if (!req.file) {
             return res.status(400).json({ message: "No image uploaded" });
         }
-
+        
         // Create filenames and paths
         const originalFilename = req.file.originalname;
         const uniqueSuffix = uuidv4();
@@ -36,18 +36,20 @@ router.post('/upload', authMiddleware, upload.single("image"), async (req, res) 
 
         // Write original file to disk temporarily
         const originalLocalPath = path.join(originalDir, newFileName);
+        console.log('Original Local Path',originalLocalPath)
         fs.writeFileSync(originalLocalPath, req.file.buffer);
 
         // Process image and save to bg path
         const processedLocalPath = path.join(bgDir, newFileName);
+        console.log('Processed Local Path',processedLocalPath)
         await removeBackgroundFromImage(originalLocalPath, processedLocalPath);
 
         // Read processed file as buffer
         const processedBuffer = fs.readFileSync(processedLocalPath);
 
         // Upload to S3
-        const originalS3Url = await uploadFile(`original/${newFileName}`, req.file.buffer);
-        const bgS3Url = await uploadFile(`bg/${newFileName}`, processedBuffer);
+        const originalS3Url = await uploadFile(`original/${userId}/${newFileName}`, req.file.buffer);
+        const bgS3Url = await uploadFile(`bg/${userId}/${newFileName}`, processedBuffer);
 
         // Save to DB
         let userItem = await prisma.userItem.findFirst({
@@ -84,7 +86,8 @@ router.post('/upload', authMiddleware, upload.single("image"), async (req, res) 
 //@ts-ignore
 router.get('/status/:image_id',authMiddleware , async(req, res) => {
     //@ts-ignore
-    const {image_id} = req.params ;
+    const {image_id} = req.params;
+
     const image = await prisma.images.findUnique({
         where:{
             id:image_id
@@ -114,15 +117,42 @@ router.get('/download/:image_id',authMiddleware, async(req, res) => {
 });
 
 //@ts-ignore
-router.get('/images',authMiddleware, async (req, res) => {
+router.get('/images', authMiddleware, async (req, res) => {
+    try {
+        //@ts-ignore
+        const userId = req.id;
+
+        // Get images from S3 bucket's bg folder for this user
+        const s3Images = await listFiles(`bg/${userId}/`);
+
+        // Combine both sources of data
+        const response = {
+            s3_images: s3Images,
+        };
+
+        res.status(200).json(response);
+    } catch (error) {
+        console.error("Error fetching images:", error);
+        res.status(500).json({ 
+            message: "Failed to fetch images", 
+            error: error instanceof Error ? error.message : String(error)
+        });
+    }
+});
+
+//@ts-ignore
+router.get('/images/:image_id',authMiddleware, async (req, res) => {
     //@ts-ignore
-    const id = req.id ;
-    const images = await prisma.images.findMany({
+    const {image_id} = req.params;
+    const image = await prisma.images.findUnique({  
         where:{
-            userid:id
+            id:image_id
         }
     })
-    res.status(200).json(images)
-});
+    if(!image){
+        res.status(400).json({message:"Image not found"})
+    }
+    return res.status(200).json(image)
+}); 
 
 export const mainRouter = router;

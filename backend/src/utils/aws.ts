@@ -22,3 +22,19 @@ export const uploadFile = async (fileName: string, fileBuffer: Buffer): Promise<
 
     return response.Location; // URL to access the uploaded file
 };
+export const listFiles = async (prefix: string): Promise<string[]> => {
+    const params = {
+        Bucket: 'removify',
+        Prefix: prefix
+    };
+
+    const response = await s3.listObjectsV2(params).promise();
+    
+    return response.Contents?.map(object => {
+        return s3.getSignedUrl('getObject', {
+            Bucket: 'removify',
+            Key: object.Key,
+            Expires: 3600 // URL expires in 1 hour
+        });
+    }) || [];
+};
