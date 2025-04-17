@@ -25,7 +25,7 @@ export function FileUploadDemo() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Starting upload process');
+    // console.log('Starting upload process');
     
     if (files.length === 0) {
       setError("Please select an image.");
@@ -33,7 +33,7 @@ export function FileUploadDemo() {
     }
 
     const file = files[0];
-    console.log('Selected file:', file);
+    // console.log('Selected file:', file);
     
     // Validate file type
     if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
@@ -43,7 +43,7 @@ export function FileUploadDemo() {
 
     const formData = new FormData();
     formData.append("image", file);
-    console.log('FormData created with file');
+    // console.log('FormData created with file');
 
     setLoading(true);
     setError(null);
@@ -58,23 +58,23 @@ export function FileUploadDemo() {
         return;
       }
 
-      console.log('Sending request to:', `${API_URL}/main/upload`);
+      // console.log('Sending request to:', `${API_URL}/main/upload`);
       const response = await axios.post(`${API_URL}/main/upload`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           "Authorization": token
         }
       });
-      console.log('Response received:', response.data);
+      // console.log('Response received:', response.data);
 
       // Navigate to download page with the image data
       router.push(`/download?imageId=${response.data.original_filename}`);
     } catch (err) {
       setLoading(false);
-      console.error('Full error details:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
-      console.error('Error headers:', err.response?.headers);
+      // console.error('Full error details:', err);
+      // console.error('Error response:', err.response?.data);
+      // console.error('Error status:', err.response?.status);
+      // console.error('Error headers:', err.response?.headers);
       
       if (err.response) {
         if (err.response.status === 404 && err.response.data.msg === "You are not logged in") {

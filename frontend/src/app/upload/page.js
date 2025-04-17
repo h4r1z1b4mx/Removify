@@ -1,8 +1,5 @@
 import { FileUploadDemo } from "@/components/FileUploadDemo";
-import { MovingBorderDemo } from "@/components/MovingButton";
 import { NavbarDemo } from "@/components/Navbar";
-import { Button } from "@/components/ui/moving-border";
-import Link from "next/link";
 
 export default function Home() {
   return (

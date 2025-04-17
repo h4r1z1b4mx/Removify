@@ -1,6 +1,4 @@
 "use client"
-import { DirectionAwareHoverDemo } from "@/components/DirectionAwareHoverDemo";
-import { MovingBorderDemo } from "@/components/MovingButton";
 import { NavbarDemo } from "@/components/Navbar";
 import DownloadButton from "@/components/DownloadButton";
 import { useSearchParams } from 'next/navigation';
@@ -12,12 +10,8 @@ export default function Home() {
   return (
     <>
         <NavbarDemo />
-        <div className="flex flex-col justify-center items-center">
-          <DirectionAwareHoverDemo />
-          <div className="mt-8">
-            <MovingBorderDemo />
-          </div>
-          <div className="mt-12">
+        <div className="w-full h-full flex flex-col justify-center items-center">
+          <div className="w-full h-full flex justify-center items-center mt-12">
             {/* Ensure imageId is available before rendering DownloadButton */}
             {imageId ? (
               <DownloadButton imageId={imageId} />
