@@ -11,19 +11,21 @@ import { API_URL } from "@/app/config";
 export function SignupFormDemo() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [firstname, setFirstname] = useState("");
-  const [lastname, setLastname] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
 
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${API_URL}/auth/signup`, {
+      console.log("Signing up...",firstName,lastName,email,password);
+
+      const res = await axios.post(`${API_URL}/auth/register`, {
+        firstName,
+        lastName,
         email,
-        password,
-        firstname,
-        lastname,
+        password
       });
 
       console.log("Signup successful:", res.data);
@@ -58,8 +60,8 @@ export function SignupFormDemo() {
             <Label htmlFor="firstname">First name</Label>
             <Input
               id="firstname"
-              value={firstname}
-              onChange={(e) => setFirstname(e.target.value)}
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
               placeholder="Tyler"
               type="text"
               required
@@ -69,8 +71,8 @@ export function SignupFormDemo() {
             <Label htmlFor="lastname">Last name</Label>
             <Input
               id="lastname"
-              value={lastname}
-              onChange={(e) => setLastname(e.target.value)}
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
               placeholder="Durden"
               type="text"
               required
