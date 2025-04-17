@@ -28,9 +28,7 @@ export function SignupFormDemo() {
         password
       });
 
-      console.log("Signup successful:", res.data);
-      localStorage.setItem("token", res.data.token);
-      router.push("/upload");
+      router.push("/login");
     } catch (err) {
       if (err.response) {
         console.error("Signup failed:", err.response.data.message);
