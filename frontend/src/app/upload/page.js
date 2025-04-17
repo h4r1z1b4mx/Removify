@@ -12,10 +12,6 @@ export default function Home() {
         <div>
         <FileUploadDemo/>
         </div>
-        <Link href={'/download'} className=" w-full flex item-center">
-        
-          <MovingBorderDemo/>
-        </Link>
       </div>
     </>
   );

@@ -71,7 +71,7 @@ router.post('/upload', authMiddleware, upload.single("image"), async (req, res) 
         const imageData = await prisma.images.create({
             data: {
                 userid: userItem.id,  // Connect to UserItem instead of User
-                original_filename: originalFilename,
+                original_filename: uniqueSuffix,
                 processed_url: bgS3Url,
                 status: "Done"
             }

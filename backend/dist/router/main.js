@@ -73,7 +73,7 @@ router.post('/upload', middleware_1.authMiddleware, upload.single("image"), (req
         const imageData = yield db_1.prisma.images.create({
             data: {
                 userid: userItem.id, // Connect to UserItem instead of User
-                original_filename: originalFilename,
+                original_filename: uniqueSuffix,
                 processed_url: bgS3Url,
                 status: "Done"
             }

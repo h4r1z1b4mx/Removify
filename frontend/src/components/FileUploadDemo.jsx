@@ -68,7 +68,7 @@ export function FileUploadDemo() {
       console.log('Response received:', response.data);
 
       // Navigate to download page with the image data
-      router.push(`/download?imageId=${response.data.image_id}`);
+      router.push(`/download?imageId=${response.data.original_filename}`);
     } catch (err) {
       setLoading(false);
       console.error('Full error details:', err);
@@ -92,7 +92,7 @@ export function FileUploadDemo() {
     <div className="w-full max-w-4xl mx-auto min-h-96 border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-800 rounded-lg p-4">
       <FileUpload onChange={handleFileUpload} />
       
-      <div className="mt-4">
+      <div className="w-full flex justify-center mt-4">
         <button
           onClick={handleSubmit}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
