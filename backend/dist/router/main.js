@@ -27,6 +27,7 @@ const upload = (0, multer_1.default)({ storage: multer_1.default.memoryStorage()
 //@ts-ignore
 router.post('/upload', middleware_1.authMiddleware, upload.single("image"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log('Uploading image');
         //@ts-ignore
         const userId = req.id;
         if (!req.file) {
@@ -106,12 +107,13 @@ router.get('/download/:image_id', middleware_1.authMiddleware, (req, res) => __a
     const userId = req.id;
     const { image_id } = req.params;
     try {
-        const signedUrl = yield (0, aws_1.getDownloadUrl)(userId, image_id);
-        return res.status(200).json({ downloadUrl: signedUrl });
+        const filePath = yield (0, aws_1.getImage)(userId, image_id);
+        console.log('File Path', filePath);
+        res.sendFile(filePath); // Sends the image to the client
     }
-    catch (error) {
-        console.error('Download error:', error);
-        return res.status(500).json({ message: 'Failed to generate download link' });
+    catch (err) {
+        console.error('Error:', err);
+        res.status(500).send('Failed to download image.');
     }
 }));
 //@ts-ignore

@@ -1,4 +1,6 @@
 import { S3 } from 'aws-sdk';
+import path from 'path';
+import fs from 'fs';
 
 const s3 = new S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -50,3 +52,30 @@ export const getDownloadUrl = async (userId: string, imageId: string): Promise<s
 
     return s3.getSignedUrl('getObject', params);
 };
+
+export const getImage = async (userId: string, imageId: string): Promise<string> => {
+    const key = `bg/${userId}/${imageId}.jpg`;
+    const localFilePath = path.join(__dirname, 'downloaded_image.jpg'); // Save image with its ID
+    console.log('Looking for S3 key:', key);
+    console.log('Saving to local path:', localFilePath);
+    const params = {
+      Bucket: 'removify',
+      Key: key,
+    };
+  
+    return new Promise((resolve, reject) => {
+      const fileStream = fs.createWriteStream(localFilePath);
+  
+      s3.getObject(params)
+        .createReadStream()
+        .on('error', (err) => {
+          console.error('S3 download error:', err);
+          reject(new Error('Error downloading image from S3'));
+        })
+        .pipe(fileStream)
+        .on('close', () => {
+          console.log('Image downloaded to:', localFilePath);
+          resolve(localFilePath);
+        });
+    });
+  };

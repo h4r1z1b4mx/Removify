@@ -3,7 +3,7 @@ import { authMiddleware } from "../middleware";
 import multer from "multer";
 import { prisma } from "../db";
 import fs from "fs";
-import { getDownloadUrl, listFiles, uploadFile } from "../utils/aws";
+import { getDownloadUrl, getImage, listFiles, uploadFile } from "../utils/aws";
 import {v4 as uuidv4} from "uuid";
 import path from "path";
 import { removeBackgroundFromImage } from "../utils/rg";
@@ -15,6 +15,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 //@ts-ignore
 router.post('/upload', authMiddleware, upload.single("image"), async (req, res) => {
     try {
+        console.log('Uploading image')
         //@ts-ignore
         const userId = req.id as string;
         if (!req.file) {
@@ -108,11 +109,12 @@ router.get('/download/:image_id',authMiddleware, async(req, res) => {
     const { image_id } = req.params;
 
     try {
-        const signedUrl = await getDownloadUrl(userId, image_id);
-        return res.status(200).json({ downloadUrl: signedUrl });
-    } catch (error) {
-        console.error('Download error:', error);
-        return res.status(500).json({ message: 'Failed to generate download link' });
+        const filePath = await getImage(userId, image_id);
+        console.log('File Path',filePath)
+        res.sendFile(filePath); // Sends the image to the client
+      } catch (err) {
+        console.error('Error:', err);
+        res.status(500).send('Failed to download image.');
     }
 });
 

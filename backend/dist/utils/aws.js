@@ -8,9 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDownloadUrl = exports.listFiles = exports.uploadFile = void 0;
+exports.getImage = exports.getDownloadUrl = exports.listFiles = exports.uploadFile = void 0;
 const aws_sdk_1 = require("aws-sdk");
+const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 const s3 = new aws_sdk_1.S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -58,3 +63,28 @@ const getDownloadUrl = (userId, imageId) => __awaiter(void 0, void 0, void 0, fu
     return s3.getSignedUrl('getObject', params);
 });
 exports.getDownloadUrl = getDownloadUrl;
+const getImage = (userId, imageId) => __awaiter(void 0, void 0, void 0, function* () {
+    const key = `bg/${userId}/${imageId}.jpg`;
+    const localFilePath = path_1.default.join(__dirname, 'downloaded_image.jpg'); // Save image with its ID
+    console.log('Looking for S3 key:', key);
+    console.log('Saving to local path:', localFilePath);
+    const params = {
+        Bucket: 'removify',
+        Key: key,
+    };
+    return new Promise((resolve, reject) => {
+        const fileStream = fs_1.default.createWriteStream(localFilePath);
+        s3.getObject(params)
+            .createReadStream()
+            .on('error', (err) => {
+            console.error('S3 download error:', err);
+            reject(new Error('Error downloading image from S3'));
+        })
+            .pipe(fileStream)
+            .on('close', () => {
+            console.log('Image downloaded to:', localFilePath);
+            resolve(localFilePath);
+        });
+    });
+});
+exports.getImage = getImage;
